@@ -1,0 +1,112 @@
+// Problem 1: On Status Change of Lead to Contacted, Create Contact, Account and Deal, Link, Created Contact/Account to Deal and Link Create Account to Contact. Do not use ConvertLead Function, do it manually using Script.
+
+// Description: 
+
+// On Status change of Lead = "Contacted"
+// Create Account
+// Create Contact
+// In Contact Link Account
+// Create Deal
+// In Deal Link Account and Contact
+// Move all Activities of Lead to Deals.
+// All Tasks
+// All Meetings/Events
+// All Calls
+// All Notes
+// All Attachments
+// Delete the Lead.
+
+// Solution to problem 1
+leadID = 4728790000006377019;
+leadResponse = zoho.crm.getRecordById("Leads",leadID);
+accountInfo = {"Account_Name":leadResponse.get("Full_Name"),"Account_Email":leadResponse.get("Email"),"Parent_Account":leadResponse.get("Accounts_Lookup").get("id"),"Phone":leadResponse.get("Lead_Phone"),"Annual_Revenue":leadResponse.get("Annual_Revenue")};
+accountResponse = zoho.crm.createRecord("Accounts",accountInfo);
+// account created
+contactInfo = {"Last_Name":leadResponse.get("Last_Name"),"First_Name":leadResponse.get("First_Name"),"Account_Name":accountResponse.get("id"),"Email":leadResponse.get("Email"),"Phone":leadResponse.get("Lead_Phone")};
+contactResponse = zoho.crm.createRecord("Contacts",contactInfo);
+// contact created
+dealInfo = {"Deal_Name":leadResponse.get("Full_Name"),"Account_Name":accountResponse.get("id"),"Contact_Name":contactResponse.get("id"),"Account_Phone":accountResponse.get("Phone")};
+dealResponse = zoho.crm.createRecord("Deals",dealInfo);
+// deal created
+dealId = dealResponse.get("id");
+notesInfo = zoho.crm.getRelatedRecords("Notes","Leads",leadID);
+// notes received
+notesList = List();
+notesList.addAll(notesInfo);
+// notes collected in a list for looping through
+for each  noteElement in notesList
+{
+	note = Map();
+	note.put("Note_Title",noteElement.get("Note_Title"));
+	note.put("Note_Content",noteElement.get("Note_Content"));
+	note.put("Parent_Id",dealId);
+	note.put("$se_module","Deals");
+	zoho.crm.createRecord("Notes",note);
+	// notes added to the new deal
+}
+attachmentsInfo = zoho.crm.getRelatedRecords("Attachments","Leads",leadID);
+// attachments received
+attachmentsList = List();
+attachmentsList.addAll(attachmentsInfo);
+// attachments collected in a list for looping through
+for each  attachment in attachmentsList
+{
+	attachmentId = attachment.get("id");
+	downloadedAttachment = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2.1/Leads/" + leadID + "/Attachments/" + attachmentId
+		type :GET
+		connection:"zoho_test_crm_conn"
+	];
+	zoho.crm.attachFile("Deals",dealId,downloadedAttachment);
+}
+calls_info = zoho.crm.getRelatedRecords("Calls","Leads",leadID);
+calls_list = List();
+calls_list.addAll(calls_info);
+for each  callElement in calls_list
+{
+	call = Map();
+	call.put("Call_Start_Time",callElement.get("Call_Start_Time"));
+	call.put("Call_Type",callElement.get("Call_Type"));
+	call.put("Call_Purpose",callElement.get("Call_Purpose"));
+	call.put("What_Id", dealId);
+	call.put("$se_module", "Deals");
+	call.put("Call_Purpose", callElement.get("Call_Purpose"));
+	call.put("Call_Status", callElement.get("Call_Status"));
+	zoho.crm.createRecord("Calls", call); 				// calls pushed to the created deal
+}
+
+eventsInfo = zoho.crm.getRelatedRecords("Events", "Leads", leadID);
+events_list = List();
+events_list.addAll(eventsInfo);
+for each eventElement in events_list
+{
+	event = Map();
+	event.put("Start_DateTime", eventElement.get("Start_DateTime"));
+	event.put("Event_Title", eventElement.get("Event_Title"));
+	event.put("End_DateTime", eventElement.get("End_DateTime"));
+	event.put("What_Id", dealId);
+	event.put("$se_module", "Deals");
+	zoho.crm.createRecord("Events", event);				// meetings pushed to the created deal
+}
+tasksInfo = zoho.crm.getRelatedRecords("Tasks", "Leads", leadID);
+tasks_list = List();
+tasks_list.addAll(tasksInfo);
+for each taskElement in tasks_list
+{
+	task = Map();
+	task.put("Subject", taskElement.get("Subject"));
+	task.put("What_Id", dealId);
+	task.put("$se_module", "Deals");
+	task.put("Status", taskElement.get("Status"));
+	task.put("Priority", taskElement.get("Priority"));
+	task.put("Send_Notification_Email", taskElement.get("Send_Notification_Email"));
+	task.put("Due_Date", taskElement.get("Due_Date"));
+	zoho.crm.createRecord("Tasks", task);			// tasks pushed to the created deal
+}
+
+// delete the deal
+deleteRecordMap = Map();
+deleteRecordMap = { "module":"Leads", "id":leadID };
+zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+
