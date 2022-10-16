@@ -17,9 +17,10 @@
 // Delete the Lead.
 
 // Solution to problem 1
-leadID = 4728790000006377019;
 leadResponse = zoho.crm.getRecordById("Leads",leadID);
-accountInfo = {"Account_Name":leadResponse.get("Full_Name"),"Account_Email":leadResponse.get("Email"),"Parent_Account":leadResponse.get("Accounts_Lookup").get("id"),"Phone":leadResponse.get("Lead_Phone"),"Annual_Revenue":leadResponse.get("Annual_Revenue")};
+// info leadResponse;
+accountInfo = {"Account_Name":leadResponse.get("Full_Name"),"Account_Email":leadResponse.get("Email"),"Phone":leadResponse.get("Lead_Phone"),"Annual_Revenue":leadResponse.get("Annual_Revenue")};
+// info accountInfo;
 accountResponse = zoho.crm.createRecord("Accounts",accountInfo);
 // account created
 contactInfo = {"Last_Name":leadResponse.get("Last_Name"),"First_Name":leadResponse.get("First_Name"),"Account_Name":accountResponse.get("id"),"Email":leadResponse.get("Email"),"Phone":leadResponse.get("Lead_Phone")};
@@ -69,44 +70,45 @@ for each  callElement in calls_list
 	call.put("Call_Start_Time",callElement.get("Call_Start_Time"));
 	call.put("Call_Type",callElement.get("Call_Type"));
 	call.put("Call_Purpose",callElement.get("Call_Purpose"));
-	call.put("What_Id", dealId);
-	call.put("$se_module", "Deals");
-	call.put("Call_Purpose", callElement.get("Call_Purpose"));
-	call.put("Call_Status", callElement.get("Call_Status"));
-	zoho.crm.createRecord("Calls", call); 				// calls pushed to the created deal
+	call.put("What_Id",dealId);
+	call.put("$se_module","Deals");
+	call.put("Call_Purpose",callElement.get("Call_Purpose"));
+	call.put("Call_Status",callElement.get("Call_Status"));
+	zoho.crm.createRecord("Calls",call);
+	// calls pushed to the created deal
 }
-
-eventsInfo = zoho.crm.getRelatedRecords("Events", "Leads", leadID);
+eventsInfo = zoho.crm.getRelatedRecords("Events","Leads",leadID);
 events_list = List();
 events_list.addAll(eventsInfo);
-for each eventElement in events_list
+for each  eventElement in events_list
 {
 	event = Map();
-	event.put("Start_DateTime", eventElement.get("Start_DateTime"));
-	event.put("Event_Title", eventElement.get("Event_Title"));
-	event.put("End_DateTime", eventElement.get("End_DateTime"));
-	event.put("What_Id", dealId);
-	event.put("$se_module", "Deals");
-	zoho.crm.createRecord("Events", event);				// meetings pushed to the created deal
+	event.put("Start_DateTime",eventElement.get("Start_DateTime"));
+	event.put("Event_Title",eventElement.get("Event_Title"));
+	event.put("End_DateTime",eventElement.get("End_DateTime"));
+	event.put("What_Id",dealId);
+	event.put("$se_module","Deals");
+	zoho.crm.createRecord("Events",event);
+	// meetings pushed to the created deal
 }
-tasksInfo = zoho.crm.getRelatedRecords("Tasks", "Leads", leadID);
+tasksInfo = zoho.crm.getRelatedRecords("Tasks","Leads",leadID);
 tasks_list = List();
 tasks_list.addAll(tasksInfo);
-for each taskElement in tasks_list
+for each  taskElement in tasks_list
 {
 	task = Map();
-	task.put("Subject", taskElement.get("Subject"));
-	task.put("What_Id", dealId);
-	task.put("$se_module", "Deals");
-	task.put("Status", taskElement.get("Status"));
-	task.put("Priority", taskElement.get("Priority"));
-	task.put("Send_Notification_Email", taskElement.get("Send_Notification_Email"));
-	task.put("Due_Date", taskElement.get("Due_Date"));
-	zoho.crm.createRecord("Tasks", task);			// tasks pushed to the created deal
+	task.put("Subject",taskElement.get("Subject"));
+	task.put("What_Id",dealId);
+	task.put("$se_module","Deals");
+	task.put("Status",taskElement.get("Status"));
+	task.put("Priority",taskElement.get("Priority"));
+	task.put("Send_Notification_Email",taskElement.get("Send_Notification_Email"));
+	task.put("Due_Date",taskElement.get("Due_Date"));
+	zoho.crm.createRecord("Tasks",task);
+	// tasks pushed to the created deal
 }
-
 // delete the deal
 deleteRecordMap = Map();
-deleteRecordMap = { "module":"Leads", "id":leadID };
+deleteRecordMap = {"module":"Leads","id":leadID};
 zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
 
