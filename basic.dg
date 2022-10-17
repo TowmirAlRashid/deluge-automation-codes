@@ -112,3 +112,43 @@ deleteRecordMap = Map();
 deleteRecordMap = {"module":"Leads","id":leadID};
 zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
 
+
+
+
+// Problem 2: Deal is Closed Won
+// Send Email to Deal Owner, Account Owner, Contact Owner, Contact Email, Account Email. (If same email exits for multiple owner, send only one.)
+// Using Workflow with Template
+// Using Sendmail
+// Using Send Mail Rest API V2.1
+
+// solution to Problem 2
+dealResponse = zoho.crm.getRecordById("Deals",dealId);
+emails_list = List();
+emails_list.add(dealResponse.get("Owner").get("email"));
+// deal owner email collected
+accountResponse = zoho.crm.getRecordById("Accounts",dealResponse.get("Account_Name").get("id"));
+emails_list.add(accountResponse.get("Account_Email"));
+// account email collected
+emails_list.add(accountResponse.get("Owner").get("email"));
+// account owner collected
+contactResponse = zoho.crm.getRecordById("Contacts",dealResponse.get("Contact_Name").get("id"));
+emails_list.add(contactResponse.get("Email"));
+// contact email collected
+emails_list.add(contactResponse.get("Owner").get("email"));
+// contact owner collected
+emails_list = emails_list.distinct();
+for each  email in emails_list
+{
+	if(email != null)
+	{
+		data = {"data":{{"from":{"user_name": dealResponse.get("Deal_Name"),"email":zoho.adminuserid},"to":{{"email":email}},"subject":"The deal is Closed Won!","template":{"id":4728790000006456686}}}};
+		response = invokeurl
+		[
+			url :"https://www.zohoapis.com/crm/v2.1/Deals/"+dealId+"/actions/send_mail"
+			type : POST
+			connection: "zoho_test_crm_conn"
+			parameters: data.toString()
+		];
+		info response;
+	}
+}
