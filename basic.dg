@@ -152,3 +152,38 @@ for each  email in emails_list
 		info response;
 	}
 }
+
+
+// problem 3: Create a Date Time Field in CRM Module where Records are above 2000 and Bulk Update the Date Time Field with Current Date Time.
+
+// Create Min 2000 Data in any Module
+// Create a Date Time Field.
+// Create a Button in Utility Menu, on click, it will update that Date Time Filed when it is clicked.
+
+// solution to problem 3
+update_list = List();
+result = 0;
+page_no = 0;
+limit = 200;
+array = ".".leftPad(10).toList("");
+for each  position in array
+{
+	leads_response = zoho.crm.getRecords("Leads", page_no, limit);
+	info leads_response.size();
+	for each item in leads_response
+	{
+		update_list.add({"id":item.get("id"),"Update_Current_Date":now.toString("yyyy-MM-dd'T'HH:mm:ss") + "+06:00"});
+		if(update_list.size() == 100)
+		{
+			info zoho.crm.bulkUpdate("Leads",update_list);
+			update_list = list();
+			result += 100;
+		}
+	}
+	page_no = page_no + 1;
+}
+if(update_list.size() > 0)
+{
+	zoho.crm.bulkUpdate("Leads",update_list);
+}
+// return "Updated " + result + " Lead records with the current Date-Time!";
