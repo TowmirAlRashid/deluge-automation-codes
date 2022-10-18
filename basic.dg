@@ -208,3 +208,27 @@ for each deal in deals
 }
 
 zoho.crm.bulkUpdate("Deals", update_list) ;
+
+
+// problem 5: For all Deals, do the following
+// Create Two Field
+// Contact Phone
+// Account Phone
+// For all deals, update Contact Phone from Linked Contact and Account Phone from Linked Account.
+
+//solution to problem 5
+deals = zoho.crm.getRecords("Deals");
+
+update_list = List();
+for each deal in deals
+{
+	contact_relation = ifnull(deal.get("Contact_Name"), "");
+	account_relation = ifnull(deal.get("Account_Name"), "");
+	if(contact_relation != "" && account_relation != "")
+	{
+		contact_info = zoho.crm.getRecordById("Contacts", contact_relation.get("id"));
+		account_info = zoho.crm.getRecordById("Accounts", account_relation.get("id"));
+		update_list.add({ "id": deal.get("id"), "Account_Phone": account_info.get("Phone"), "Contact_Phone": contact_info.get("Phone") });
+	}
+}
+zoho.crm.bulkUpdate("Deals", update_list) ;
