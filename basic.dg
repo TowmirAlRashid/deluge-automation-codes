@@ -187,3 +187,24 @@ if(update_list.size() > 0)
 	zoho.crm.bulkUpdate("Leads",update_list);
 }
 // return "Updated " + result + " Lead records with the current Date-Time!";
+
+
+// problem 4: Rename Deal Name, on this Format Deal-0001
+
+// On Create Deal Name Format : Deal-0001
+
+
+// solution to problem 4
+deals = zoho.crm.getRecords("Deals");
+
+update_list = List();
+deal_index = 1;
+for each deal in deals
+{
+	dealName = "Deal-" + deal_index.toString().leftPad(4).replaceAll(" ", "0");
+	info dealName;
+	update_list.add({ "id": deal.get("id"), "Deal_Name": dealName });
+	deal_index += 1;
+}
+
+zoho.crm.bulkUpdate("Deals", update_list) ;
